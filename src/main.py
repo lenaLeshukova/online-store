@@ -1,5 +1,17 @@
+from models import Product, Category
+from src.utils import load_data_from_json
 
 if __name__ == "__main__":
+
+    # main лежит в папке src, а products.json — в корне, путь должен быть "../products.json"
+    categories = load_data_from_json('../products.json')
+
+    # Проверяем результат
+    for category in categories:
+        print(f"Категория: {category.name}")
+        for product in category.products:
+            print(f"  - Товар: {product.name}, Цена: {product.price}")
+
     product1 = Product("Samsung Galaxy S23 Ultra", "256GB, Серый цвет, 200MP камера", 180000.0, 5)
     product2 = Product("Iphone 15", "512GB, Gray space", 210000.0, 8)
     product3 = Product("Xiaomi Redmi Note 11", "1024GB, Синий", 31000.0, 14)
