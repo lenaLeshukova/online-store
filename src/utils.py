@@ -5,7 +5,8 @@ from src.models import Category, Product
 
 
 def load_data_from_json(file_path: str) -> list[Category]:
-    """Загружает данные из JSON и преобразует их в объекты классов Category и Product"""
+    """Загружает данные из JSON и преобразует их в объекты классов
+    Category и Product"""
 
     # Исправляем путь, если запускаем из разных папок
     full_path = os.path.abspath(file_path)

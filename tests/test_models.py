@@ -25,10 +25,14 @@ def test_category_counts():
     p1 = Product("Товар 1", "Оп", 100, 1)
     p2 = Product("Товар 2", "Оп", 200, 2)
 
-    cat1 = Category("Кат 1", "Оп", [p1])
+    # Использование «заглушки»
+    # Если переменная нужна только для того, чтобы сработал конструктор
+    # Category(...), замените имя переменной на нижнее подчеркивание _.
+    # Это стандартный Python способ показать, что значение переменной не важно.
+    _ = Category("Кат 1", "Оп", [p1])
     assert Category.category_count == 1
     assert Category.product_count == 1
 
-    cat2 = Category("Кат 2", "Оп", [p1, p2])
+    _ = Category("Кат 2", "Оп", [p1, p2])
     assert Category.category_count == 2
     assert Category.product_count == 3  # 1 (из первой) + 2 (из второй)
