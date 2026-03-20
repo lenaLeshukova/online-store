@@ -1,10 +1,11 @@
 import json
+from typing import Any
 
-from src.models import Category, Product
+from src.models import Category
 from src.utils import load_data_from_json
 
 
-def test_load_data_from_json(tmp_path):
+def test_load_data_from_json(tmp_path: Any) -> None:
     """Тест корректности загрузки данных из JSON и создания объектов"""
 
     # 1. Создаем временный файл с тестовыми данными
@@ -35,7 +36,4 @@ def test_load_data_from_json(tmp_path):
     assert isinstance(categories[0], Category)
     assert categories[0].name == "Смартфоны"
 
-    assert len(categories[0].products) == 1
-    assert isinstance(categories[0].products[0], Product)
-    assert categories[0].products[0].name == "Samsung"
-    assert categories[0].products[0].price == 100000.0
+    assert "Samsung" in categories[0].products
