@@ -60,27 +60,32 @@ class Category:
     product_count = 0
 
     def __init__(self, name: str, description: str,
-                 products: list[Any] | None = None) -> None:
+                 products: list | None = None) -> None:
         self.name = name
         self.description = description
         # Приватный атрибут списка товаров
-        self.__products = products if products else []
+        self.__products: list[Product] = []
 
         Category.category_count += 1
-        Category.product_count += len(self.__products)
 
-    def add_product(self, product: Product) -> None:
-        """Метод для добавления товара в категорию"""
-        self.__products.append(product)
-        Category.product_count += 1
+        # Наполняем список через метод add_product
+        if products:
+            for product in products:
+                self.add_product(product)
+
+    def add_product(self, product: Any) -> None:
+        """Метод добавляет продукт в список. Ничего не возвращает"""
+
+        if isinstance(product, Product):
+            self.__products.append(product)
+            Category.product_count += 1
 
     @property
     def products(self) -> str:
-        """Геттер, выводящий список товаров в строковом виде"""
-        result = ""
+        """Геттер, возвращает строковое представление списка товаров"""
+        product_strings = []
         for product in self.__products:
-            result += (
-                f"{product.name}, "
-                f"{product.price} руб. Остаток: {product.quantity} шт.\n"
-            )
-        return result
+            # шаблон "Название, цена руб. Остаток: кол-во шт."
+            product_strings.append(
+                f"{product.name}, {product.price} руб. Остаток: {product.quantity} шт.")
+        return "\n".join(product_strings)
