@@ -1,5 +1,7 @@
 from typing import Any
 
+import pytest
+
 from src.models import Product, Category
 
 
@@ -70,3 +72,30 @@ def test_category_counts_reset() -> None:
     cat1.add_product(p2)
 
     assert Category.product_count == 2
+
+    def test_product_str(product_iphone: Any) -> None:
+        """Тест строкового отображения продукта"""
+        assert str(product_iphone) == "Iphone 15, 210000.0 руб. Остаток: 8 шт."
+
+    def test_category_str(category_smartphones: Any) -> None:
+        """Тест строкового отображения категории (сумма всех quantity)"""
+        # В фикстуре один iPhone (8 шт)
+        assert str(
+            category_smartphones) == "Смартфоны, количество продуктов: 8 шт."
+
+        # Добавляем еще товар и проверяем обновление суммы
+        new_p = Product("Xiaomi", "Note 11", 30000.0, 5)
+        category_smartphones.add_product(new_p)
+        assert str(
+            category_smartphones) == "Смартфоны, количество продуктов: 13 шт."
+
+    def test_product_add(product_iphone: Any) -> None:
+        """Тест сложения двух продуктов (цена1 * кол-во1 + цена2 * кол-во2)"""
+        p2 = Product("Samsung", "S23", 100000.0, 2)
+        # (210000 * 8) + (100000 * 2) = 1680000 + 200000 = 1880000
+        assert product_iphone + p2 == 1880000.0
+
+    def test_product_add_error(product_iphone: Any) -> None:
+        """Тест ошибки при сложении продукта с другим типом данных"""
+        with pytest.raises(TypeError):
+            product_iphone + 100

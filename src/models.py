@@ -11,6 +11,17 @@ class Product:
         self.__price = price  # Приватный атрибут цены
         self.quantity = quantity
 
+    def __str__(self) -> str:
+        """Строковое отображение продукта"""
+        return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
+
+    def __add__(self, other: Any) -> float:
+        """Сложение товаров (цена * количество + цена * количество)"""
+        if isinstance(other, Product):
+            return (self.price * self.quantity) + (
+                    other.price * other.quantity)
+        raise TypeError("Складывать можно только объекты класса Product")
+
     @classmethod
     def new_product(cls, product_data: dict,
                     products_list: list["Product"] | None = None) -> "Product":
@@ -73,6 +84,11 @@ class Category:
             for product in products:
                 self.add_product(product)
 
+    def __str__(self) -> str:
+        """Строковое отображение категории с подсчетом всех штук на складе"""
+        total_quantity = sum(product.quantity for product in self.__products)
+        return f"{self.name}, количество продуктов: {total_quantity} шт."
+
     def add_product(self, product: Any) -> None:
         """Метод добавляет продукт в список. Ничего не возвращает"""
 
@@ -82,10 +98,6 @@ class Category:
 
     @property
     def products(self) -> str:
-        """Геттер, возвращает строковое представление списка товаров"""
-        product_strings = []
-        for product in self.__products:
-            # шаблон "Название, цена руб. Остаток: кол-во шт."
-            product_strings.append(
-                f"{product.name}, {product.price} руб. Остаток: {product.quantity} шт.")
-        return "\n".join(product_strings)
+        """Оптимиз. геттер: использует __str__ каждого продукта,
+        возвращает строковое представление списка товаров"""
+        return "\n".join([str(product) for product in self.__products])
