@@ -11,25 +11,12 @@ class Product:
         self.__price = price  # Приватный атрибут цены
         self.quantity = quantity
 
-    @classmethod
-    def new_product(cls, product_data: dict,
-                    products_list: list["Product"] | None = None) -> "Product":
-        """Создание объекта из словаря с проверкой дублей"""
-        name = product_data['name']
-        description = product_data['description']
-        price = product_data['price']
-        quantity = product_data['quantity']
+    def __add__(self, other):
+        """Сложение только объектов одного класса"""
+        if type(self) is not type(other):
+            raise TypeError("Можно складывать товары только одного класса")
+        return (self.__price * self.quantity) + (other.price * other.quantity)
 
-        if products_list:
-            for product in products_list:
-                if product.name == name:
-                    # Складываем количество
-                    product.quantity += quantity
-                    # Выбираем максимальную цену
-                    product.price = max(product.price, price)
-                    return product
-
-        return cls(name, description, price, quantity)
 
     @property
     def price(self) -> float:
@@ -42,17 +29,26 @@ class Product:
         if new_price <= 0:
             print("Цена не должна быть нулевая или отрицательная")
             return
-
-        if new_price < self.__price:
-            user_answer = input(
-                f"Вы уверены, что хотите снизить цену с {self.__price} "
-                f"до {new_price}? (y/n): ")
-            if user_answer.lower() != 'y':
-                print("Действие отменено.")
-                return
-
         self.__price = new_price
 
+class Smartphone(Product):
+    """Подкласс Смартфон"""
+    def __init__(self, name: str, description: str, price: float, quantity: int,
+                 efficiency: float, model: str, memory: int, color: str) -> None:
+        super().__init__(name, description, price, quantity)
+        self.efficiency = efficiency
+        self.model = model
+        self.memory = memory
+        self.color = color
+
+class LawnGrass(Product):
+    """Подкласс Трава газонная"""
+    def __init__(self, name: str, description: str, price: float, quantity: int,
+                 country: str, germination_period: str, color: str) -> None:
+        super().__init__(name, description, price, quantity)
+        self.country = country
+        self.germination_period = germination_period
+        self.color = color
 
 class Category:
     """Класс для представления категории товаров"""
@@ -74,11 +70,13 @@ class Category:
                 self.add_product(product)
 
     def add_product(self, product: Any) -> None:
-        """Метод добавляет продукт в список. Ничего не возвращает"""
+        """Метод добавляет продукт в список. Проверка через isinstance перед добавлением"""
 
-        if isinstance(product, Product):
-            self.__products.append(product)
-            Category.product_count += 1
+        if not isinstance(product, Product):
+            raise TypeError(
+                "Можно добавлять только объекты Product или его наследников")
+        self.__products.append(product)
+        Category.product_count += 1
 
     @property
     def products(self) -> str:

@@ -1,4 +1,4 @@
-from src.models import Category
+from src.models import Category, Smartphone, LawnGrass
 
 if __name__ == '__main__':
     smartphone1 = Smartphone("Samsung Galaxy S23 Ultra",
