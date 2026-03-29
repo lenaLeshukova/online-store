@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 
 class Product:
@@ -11,36 +11,13 @@ class Product:
         self.__price = price  # Приватный атрибут цены
         self.quantity = quantity
 
-    def __str__(self) -> str:
-        """Строковое отображение продукта"""
-        return f"{self.name}, {self.price} руб. Остаток: {self.quantity} шт."
-
     def __add__(self, other: Any) -> float:
-        """Сложение товаров (цена * количество + цена * количество)"""
-        if isinstance(other, Product):
-            return (self.price * self.quantity) + (
-                    other.price * other.quantity)
-        raise TypeError("Складывать можно только объекты класса Product")
-
-    @classmethod
-    def new_product(cls, product_data: dict,
-                    products_list: list["Product"] | None = None) -> "Product":
-        """Создание объекта из словаря с проверкой дублей"""
-        name = product_data['name']
-        description = product_data['description']
-        price = product_data['price']
-        quantity = product_data['quantity']
-
-        if products_list:
-            for product in products_list:
-                if product.name == name:
-                    # Складываем количество
-                    product.quantity += quantity
-                    # Выбираем максимальную цену
-                    product.price = max(product.price, price)
-                    return product
-
-        return cls(name, description, price, quantity)
+        """Сложение только объектов одного класса"""
+        if type(self) is not type(other):
+            raise TypeError("Можно складывать товары только одного класса")
+        result = cast(float, (self.price * self.quantity) + (
+                other.price * other.quantity))
+        return result
 
     @property
     def price(self) -> float:
@@ -60,9 +37,35 @@ class Product:
                 f"до {new_price}? (y/n): ")
             if user_answer.lower() != 'y':
                 print("Действие отменено.")
-                return
+                return  # Завершаем метод, не меняя цену
 
         self.__price = new_price
+
+
+class Smartphone(Product):
+    """Подкласс Смартфон"""
+
+    def __init__(self, name: str, description: str, price: float,
+                 quantity: int,
+                 efficiency: float, model: str, memory: int,
+                 color: str) -> None:
+        super().__init__(name, description, price, quantity)
+        self.efficiency = efficiency
+        self.model = model
+        self.memory = memory
+        self.color = color
+
+
+class LawnGrass(Product):
+    """Подкласс Трава газонная"""
+
+    def __init__(self, name: str, description: str, price: float,
+                 quantity: int,
+                 country: str, germination_period: str, color: str) -> None:
+        super().__init__(name, description, price, quantity)
+        self.country = country
+        self.germination_period = germination_period
+        self.color = color
 
 
 class Category:
@@ -90,14 +93,22 @@ class Category:
         return f"{self.name}, количество продуктов: {total_quantity} шт."
 
     def add_product(self, product: Any) -> None:
-        """Метод добавляет продукт в список. Ничего не возвращает"""
+        """Метод добавляет продукт в список. Проверка через isinstance
+        перед добавлением"""
 
-        if isinstance(product, Product):
-            self.__products.append(product)
-            Category.product_count += 1
+        if not isinstance(product, Product):
+            raise TypeError(
+                "Можно добавлять только объекты Product или его наследников")
+        self.__products.append(product)
+        Category.product_count += 1
 
     @property
     def products(self) -> str:
-        """Оптимиз. геттер: использует __str__ каждого продукта,
-        возвращает строковое представление списка товаров"""
-        return "\n".join([str(product) for product in self.__products])
+        """Геттер, возвращает строковое представление списка товаров"""
+        product_strings = []
+        for product in self.__products:
+            # шаблон "Название, цена руб. Остаток: кол-во шт."
+            product_strings.append(
+                f"{product.name}, "
+                f"{product.price} руб. Остаток: {product.quantity} шт.")
+        return "\n".join(product_strings)

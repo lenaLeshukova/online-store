@@ -37,26 +37,6 @@ def test_add_product(category_smartphones: Any) -> None:
     assert "Nokia" in category_smartphones.products
 
 
-def test_new_product_classmethod() -> None:
-    """Тест логики объединения дублей """
-    p1 = Product("Samsung", "Note 1", 100.0, 5)
-    products_list = [p1]
-
-    # Данные для "такого же" товара, но дороже и в другом количестве
-    new_data = {
-        "name": "Samsung",
-        "description": "Note 2",
-        "price": 150.0,
-        "quantity": 10
-    }
-
-    updated_p = Product.new_product(new_data, products_list)
-
-    assert updated_p.name == "Samsung"
-    assert updated_p.quantity == 15  # 5 + 10
-    assert updated_p.price == 150.0  # Выбрана максимальная цена
-
-
 def test_category_counts_reset() -> None:
     """Тест корректности счетчиков классов"""
     Category.category_count = 0
@@ -73,29 +53,67 @@ def test_category_counts_reset() -> None:
 
     assert Category.product_count == 2
 
-    def test_product_str(product_iphone: Any) -> None:
-        """Тест строкового отображения продукта"""
-        assert str(product_iphone) == "Iphone 15, 210000.0 руб. Остаток: 8 шт."
 
-    def test_category_str(category_smartphones: Any) -> None:
-        """Тест строкового отображения категории (сумма всех quantity)"""
-        # В фикстуре один iPhone (8 шт)
-        assert str(
-            category_smartphones) == "Смартфоны, количество продуктов: 8 шт."
+def test_smartphone_init(smartphone_iphone: Any) -> None:
+    """Тест инициализации смартфона и его уникальных атрибутов"""
+    assert smartphone_iphone.name == "Iphone 15"
+    assert smartphone_iphone.efficiency == 98.2
+    assert smartphone_iphone.model == "15"
+    assert smartphone_iphone.memory == 512
 
-        # Добавляем еще товар и проверяем обновление суммы
-        new_p = Product("Xiaomi", "Note 11", 30000.0, 5)
-        category_smartphones.add_product(new_p)
-        assert str(
-            category_smartphones) == "Смартфоны, количество продуктов: 13 шт."
 
-    def test_product_add(product_iphone: Any) -> None:
-        """Тест сложения двух продуктов (цена1 * кол-во1 + цена2 * кол-во2)"""
-        p2 = Product("Samsung", "S23", 100000.0, 2)
-        # (210000 * 8) + (100000 * 2) = 1680000 + 200000 = 1880000
-        assert product_iphone + p2 == 1880000.0
+def test_grass_init(grass_green: Any) -> None:
+    """Тест инициализации травы и её уникальных атрибутов"""
+    assert grass_green.name == "Газон"
+    assert grass_green.country == "Россия"
+    assert grass_green.germination_period == "7 дней"
 
-    def test_product_add_error(product_iphone: Any) -> None:
-        """Тест ошибки при сложении продукта с другим типом данных"""
-        with pytest.raises(TypeError):
-            product_iphone + 100
+
+def test_products_addition(smartphone_iphone: Any,
+                           smartphone_samsung: Any) -> None:
+    """Тест сложения двух смартфонов (одинаковый класс)"""
+    # (210000 * 8) + (100000 * 2) = 1 680 000 + 200 000 = 1 880 000
+    assert smartphone_iphone + smartphone_samsung == 1880000.0
+
+
+def test_products_addition_error(smartphone_iphone: Any,
+                                 grass_green: Any) -> None:
+    """Тест ошибки при сложении разных классов """
+    with pytest.raises(TypeError):
+        smartphone_iphone + grass_green
+
+
+def test_add_product_validation(category_smartphones: Any) -> None:
+    """Тест защиты метода add_product от некорректных типов """
+    # Попытка добавить строку вместо объекта Product
+    with pytest.raises(TypeError):
+        category_smartphones.add_product("Не товар, а строка")
+
+    # Попытка добавить число
+    with pytest.raises(TypeError):
+        category_smartphones.add_product(12345)
+
+
+def test_add_subclass_product(category_smartphones: Any,
+                              grass_green: Any) -> None:
+    """Тест, что наследники Product (LawnGrass) добавляются успешно"""
+    initial_count = Category.product_count
+    category_smartphones.add_product(grass_green)
+    assert Category.product_count == initial_count + 1
+    assert "Газон" in category_smartphones.products
+
+
+def test_product_price_setter_confirm(product_iphone: Any,
+                                      monkeypatch: Any) -> None:
+    """Тест сеттера цены с подтверждением понижения (через input)"""
+    # monkeypatch — это встроенная фикстура в pytest, позволяет имитировать
+    # ввод с помощью лямбды функции (импут).
+    # Имитируем ввод пользователя 'y' (согласие на понижение)
+    monkeypatch.setattr('builtins.input', lambda _: 'y')
+    product_iphone.price = 150000.0
+    assert product_iphone.price == 150000.0
+
+    # Имитируем ввод 'n' (отказ от понижения)
+    monkeypatch.setattr('builtins.input', lambda _: 'n')
+    product_iphone.price = 100000.0
+    assert product_iphone.price == 150000.0  # Цена осталась старой
