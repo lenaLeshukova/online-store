@@ -87,6 +87,11 @@ class Category:
             for product in products:
                 self.add_product(product)
 
+    def __str__(self) -> str:
+        """Строковое отображение категории с подсчетом всех штук на складе"""
+        total_quantity = sum(product.quantity for product in self.__products)
+        return f"{self.name}, количество продуктов: {total_quantity} шт."
+
     def add_product(self, product: Any) -> None:
         """Метод добавляет продукт в список. Проверка через isinstance
         перед добавлением"""
