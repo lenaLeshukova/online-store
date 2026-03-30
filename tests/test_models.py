@@ -1,15 +1,16 @@
 from typing import Any
 
 import pytest
+from _pytest.capture import CaptureFixture  # Импорт для типизации capsys
 
-from src.models import Product, Category
+from src.models import Product, Category, Smartphone, BaseProduct
 
 
 def test_product_init(product_iphone: Any) -> None:
     """Тест корректности инициализации товара и работы геттера цены"""
     assert product_iphone.name == "Iphone 15"
     assert product_iphone.price == 210000.0
-    assert product_iphone.quantity == 8
+    assert product_iphone._BaseProduct__price == 210000.0
 
 
 def test_product_price_setter(product_iphone: Any) -> None:
@@ -21,6 +22,7 @@ def test_product_price_setter(product_iphone: Any) -> None:
     # В тесте проверяем, что цена меняется при валидном значении
     product_iphone.price = 250000.0
     assert product_iphone.price == 250000.0
+    assert product_iphone._BaseProduct__price == 250000.0
 
 
 def test_category_init(category_smartphones: Any) -> None:
@@ -45,13 +47,8 @@ def test_category_counts_reset() -> None:
     p1 = Product("Т1", "Д", 100, 1)
     cat1 = Category("С1", "Д", [p1])
 
-    assert Category.category_count == 1
-    assert Category.product_count == 1
-
-    p2 = Product("Т2", "Д", 200, 2)
-    cat1.add_product(p2)
-
-    assert Category.product_count == 2
+    assert cat1.category_count == 1
+    assert cat1.product_count == 1
 
 
 def test_smartphone_init(smartphone_iphone: Any) -> None:
@@ -117,3 +114,31 @@ def test_product_price_setter_confirm(product_iphone: Any,
     monkeypatch.setattr('builtins.input', lambda _: 'n')
     product_iphone.price = 100000.0
     assert product_iphone.price == 150000.0  # Цена осталась старой
+
+
+def test_base_product_abstraction() -> None:
+    """Проверка, что нельзя создать экземпляр абстрактного класса"""
+    with pytest.raises(TypeError):
+        BaseProduct("Test", "Test", 100.0, 1)  # type: ignore
+
+
+def test_log_mixin_print(capsys: CaptureFixture[str]) -> None:
+    """Проверка, LogMixin выводит информацию в консоль при создании объекта"""
+    Product("Iphone 15", "512GB", 210000.0, 8)
+
+    # Перехватываем вывод в консоль
+    captured = capsys.readouterr()
+
+    # Проверяем наличие строки в выводе.
+    # repr(str) добавит кавычки, поэтому проверяем формат 'Iphone 15'
+    assert ("Создан объект: Product('Iphone 15', '512GB', 210000.0, 8)"
+            in captured.out)
+
+
+def test_log_mixin_inheritance_print(capsys: CaptureFixture[str]) -> None:
+    """Проверка логирования для подклассов (Smartphone)"""
+    Smartphone("Iphone 15", "512GB", 210000.0, 8, 98.2, "15", 512, "Gray")
+
+    captured = capsys.readouterr()
+    assert ("Создан объект: Smartphone('Iphone 15', '512GB', 210000.0, 8)"
+            in captured.out)

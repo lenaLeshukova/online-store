@@ -1,15 +1,48 @@
+from abc import ABC, abstractmethod
 from typing import Any, cast
 
 
-class Product:
-    """Класс для представления товара"""
+class BaseProduct(ABC):
+    """Абстрактный базовый класс для всех продуктов"""
+
+    @abstractmethod
+    def __init__(self, name: str, description: str, price: float,
+                 quantity: int):
+        # Сохраняем базовые атрибуты здесь
+        self.name = name
+        self.description = description
+        self.__price = price
+        self.quantity = quantity
+
+
+class LogMixin:
+    """Миксин для логирования создания объекта"""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        # Печатаем инфо о создании ДО передачи аргументов дальше
+        print(
+            f"Создан объект: {self.__class__.__name__}"
+            f"({', '.join([repr(a) for a in args])})"
+        )
+        # используется repr(a), чтобы строковые значения выводились в кавычках
+        # (как в задании: 'Продукт1').
+        # Передаем ВСЕ аргументы следующему классу в цепочке (BaseProduct)
+        super().__init__(*args, **kwargs)
+
+
+class Product(LogMixin, BaseProduct):
+    """Класс для представления товара, наследует миксин и абстрактный класс"""
+
+    # Миксин идет первым, чтобы при вызове super().__init__ сначала
+    # сработал конструктор миксина
+    # Добавляем эту строку, чтобы mypy "увидел" скрытый атрибут родителя
+    _BaseProduct__price: float
 
     def __init__(self, name: str, description: str, price: float,
                  quantity: int) -> None:
-        self.name = name
-        self.description = description
-        self.__price = price  # Приватный атрибут цены
-        self.quantity = quantity
+
+        #  Вызываем super() и передаем аргументы в LogMixin
+        super().__init__(name, description, price, quantity)
 
     def __add__(self, other: Any) -> float:
         """Сложение только объектов одного класса"""
@@ -22,7 +55,8 @@ class Product:
     @property
     def price(self) -> float:
         """Геттер для цены"""
-        return self.__price
+        # Доступ к приватному атрибуту родителя
+        return self._BaseProduct__price
 
     @price.setter
     def price(self, new_price: float) -> None:
@@ -31,15 +65,16 @@ class Product:
             print("Цена не должна быть нулевая или отрицательная")
             return
 
-        if new_price < self.__price:
+        if new_price < self._BaseProduct__price:
             user_answer = input(
-                f"Вы уверены, что хотите снизить цену с {self.__price} "
+                f"Вы уверены, что хотите снизить цену с"
+                f" {self._BaseProduct__price} "
                 f"до {new_price}? (y/n): ")
             if user_answer.lower() != 'y':
                 print("Действие отменено.")
                 return  # Завершаем метод, не меняя цену
 
-        self.__price = new_price
+        self._BaseProduct__price = new_price
 
 
 class Smartphone(Product):
@@ -49,6 +84,7 @@ class Smartphone(Product):
                  quantity: int,
                  efficiency: float, model: str, memory: int,
                  color: str) -> None:
+        # Передаем аргументы в Product, который передаст в миксин через super
         super().__init__(name, description, price, quantity)
         self.efficiency = efficiency
         self.model = model
