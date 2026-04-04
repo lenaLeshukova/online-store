@@ -117,3 +117,23 @@ def test_product_price_setter_confirm(product_iphone: Any,
     monkeypatch.setattr('builtins.input', lambda _: 'n')
     product_iphone.price = 100000.0
     assert product_iphone.price == 150000.0  # Цена осталась старой
+
+
+def test_product_init_zero_quantity() -> None:
+    """Тест: создание товара с нулевым количеством вызывает ValueError"""
+    with pytest.raises(ValueError, match="Товар с нулевым количеством "
+                                         "не может быть добавлен"):
+        Product("Бракованный товар", "Описание", 100.0, 0)
+
+
+def test_category_middle_price(category_smartphones: Any) -> None:
+    """Тест: корректный расчет средней цены в категории"""
+    expected_avg = (210000.0 + 100000.0) / 2
+    assert category_smartphones.middle_price() == expected_avg
+
+
+def test_category_middle_price_empty() -> None:
+    """Тест: средняя цена в пустой категории
+    возвращает 0 (обработка ZeroDivisionError)"""
+    empty_category = Category("Пустая", "Нет товаров", [])
+    assert empty_category.middle_price() == 0

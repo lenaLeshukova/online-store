@@ -6,6 +6,11 @@ class Product:
 
     def __init__(self, name: str, description: str, price: float,
                  quantity: int) -> None:
+        # Проверка количества при создании
+        if quantity == 0:
+            raise ValueError(
+                "Товар с нулевым количеством не может быть добавлен")
+
         self.name = name
         self.description = description
         self.__price = price  # Приватный атрибут цены
@@ -86,6 +91,22 @@ class Category:
         if products:
             for product in products:
                 self.add_product(product)
+
+    # Метод для подсчета среднего ценника
+    def middle_price(self) -> float:
+        """
+                Подсчитывает средний ценник всех товаров в категории.
+                Если товары отсутствуют, обрабатывает ZeroDivisionError и
+                возвращает 0.
+                """
+        try:
+            total_price = sum(product.price for product in self.__products)
+            # Деление на количество товаров в списке
+            result = total_price / len(self.__products)
+            return result
+        except ZeroDivisionError:
+            # Если товаров нет, возвращаем 0
+            return 0
 
     def __str__(self) -> str:
         """Строковое отображение категории с подсчетом всех штук на складе"""
