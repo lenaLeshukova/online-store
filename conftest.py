@@ -15,7 +15,10 @@ def category_smartphones(product_iphone):
     # Сбрасываем счетчики перед тестом, чтобы они были чистыми
     Category.category_count = 0
     Category.product_count = 0
-    return Category("Смартфоны", "Описание", [product_iphone])
+    product_samsung = Product("Samsung Galaxy S23", "256GB",
+                              100000.0, 2)
+    return Category("Смартфоны", "Описание",
+                    [product_iphone, product_samsung])
 
 
 # Фикстуры наследование
